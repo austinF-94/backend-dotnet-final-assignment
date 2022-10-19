@@ -6,10 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers;
 
-[ApiController]
-[Route("[controller]")]
-public class PostsController : ControllerBase 
-{
+
+    [ApiController]
+    [Route("api/[controller]")]
+    public class PostsController : ControllerBase 
+    {
     private readonly ILogger<PostsController> _logger;
     private readonly IPostsRepository _postsRepository;
 
@@ -20,7 +21,7 @@ public class PostsController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<Posts>> GetCoffee() 
+    public ActionResult<IEnumerable<Posts>> GetAllPosts() 
     {
     return Ok(_postsRepository.GetAllPosts());
     }
@@ -35,20 +36,26 @@ public class PostsController : ControllerBase
     }
     return Ok(post);
     }
-    
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+
     [HttpPost]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public ActionResult<Posts> CreatePost(Posts post) 
     {
     if (!ModelState.IsValid || post == null) {
         return BadRequest();
     }
+    if (HttpContext.User == null) {
+        return Unauthorized();
+    }
+
+    var userId = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "Posts_UserId");
+    post.UserId = Int32.Parse(userId.Value);
+
     var newPost = _postsRepository.CreatePost(post);
     return Created(nameof(GetPostById), newPost);
     }
-
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [HttpPut]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("{postsId:int}")]
     public ActionResult<Posts> UpdatePost(Posts post) 
     {
@@ -58,12 +65,12 @@ public class PostsController : ControllerBase
     return Ok(_postsRepository.UpdatePost(post));
     }
 
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [HttpDelete]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("{postsId:int}")]
     public ActionResult DeletePostById(int postId) 
     {
     _postsRepository.DeletePostById(postId); 
     return NoContent();
     }
-}
+ }

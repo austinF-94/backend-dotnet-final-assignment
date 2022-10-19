@@ -1,6 +1,8 @@
 using backend.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using backend.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers;
 
@@ -38,10 +40,48 @@ namespace backend.Controllers;
 
     var token = _authService.SignIn(email, password);
 
-    if (string.IsNullOrWhiteSpace(token)) {
+    if (string.IsNullOrWhiteSpace(token)) 
+    {
         return Unauthorized();
     }
 
     return Ok(token);
     }
+
+    [HttpGet]
+    [Route("current")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public ActionResult<User> GetCurrentUser()
+    {
+        if(HttpContext.User == null)
+        {
+            return Unauthorized();
+        }
+
+        var userIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == "Posts_UserId");
+
+        var userId = Int32.Parse(userIdClaim.Value);
+
+        var user = _authService.GetUserById(userId);
+
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+        return (user);
+    }
+
+    [HttpGet]
+    [Route("{userId:int}")]
+    public ActionResult<User> GetUserById(int userId) 
+    {
+        var user = _authService.GetUserById(userId);
+
+        if (user == null) {
+            return NotFound();
+        }
+
+        return Ok(user);
+    }
+
 }

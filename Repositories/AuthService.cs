@@ -64,4 +64,10 @@ public class AuthService : IAuthService
 
     return encodedJwt;
     }
+
+    public User? GetUserById(int userId)
+    {
+        return _context.Users.FirstOrDefault(u => u.UserId == userId);
+    }
+
 }

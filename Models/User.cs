@@ -17,4 +17,9 @@ public class User
     public string? Email { get; set; }
     [Required]
     public string? Password { get; set; }
+
+    // public DateTime? CreatedOn { get; set; }
+
+    [JsonIgnore]
+    public IEnumerable<Posts>? Posts { get; set; } //ask about syntax
 }

@@ -7,5 +7,11 @@ public class Posts
     public int PostId { get; set; }
     [Required]
 
-    public string? Post { get; set; }
+    public string? Body { get; set; }
+
+    public int UserId { get; set; }
+
+    public User? User { get; set; }
+
+   //  public DateTime CreatedOn { get; set; }
 }
